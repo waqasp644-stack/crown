@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRightIcon, ChevronDownIcon } from './Icons';
 import { floatingIngredients } from '../data/burgerData';
 
 export default function Hero({ onScrollToMenu }) {
+  // Video popup ki state
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       <div className="absolute inset-0 pointer-events-none">
@@ -48,7 +51,11 @@ export default function Hero({ onScrollToMenu }) {
             <span>Explore Menu</span>
             <ArrowRightIcon size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
-          <button className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-2xl border border-white/10 hover:border-fire/30 transition-all duration-300 backdrop-blur-sm">
+
+          {/* Our Story Button */}
+          <button 
+            onClick={() => setIsVideoOpen(true)}
+            className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-2xl border border-white/10 hover:border-fire/30 transition-all duration-300 backdrop-blur-sm active:scale-95">
             Our Story
           </button>
         </div>
@@ -57,6 +64,30 @@ export default function Hero({ onScrollToMenu }) {
           <ChevronDownIcon size={24} className="text-gray-500" />
         </div>
       </div>
+
+      {/* Local Video Popup Modal */}
+      {isVideoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="relative w-full max-w-xs sm:max-w-sm bg-dark-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center bg-black/70 hover:bg-fire text-white rounded-full transition-colors font-bold text-xs">
+              ✕
+            </button>
+
+            {/* Local Video Component */}
+            <div className="relative w-full overflow-hidden rounded-3xl">
+              <video 
+                src="/story.mp4" 
+                controls 
+                autoPlay 
+                className="w-full h-auto max-h-[80vh] object-cover rounded-3xl"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

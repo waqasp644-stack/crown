@@ -19,8 +19,9 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   
-  // Modal State
+  // Modal & Edit States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null); // Edit tracking ke liye
   const [newProduct, setNewProduct] = useState({
     title: '',
     category: 'Burgers',
@@ -84,29 +85,57 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
     }
   };
 
-  // Add Product to Firestore
-  const handleAddProduct = async (e) => {
+  // Add or Update Product in Firestore
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!newProduct.title || !newProduct.price) return;
     
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "products"), {
+      const productData = {
         title: newProduct.title,
         category: newProduct.category,
         price: parseFloat(newProduct.price),
         image: newProduct.image || 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500',
-        description: newProduct.description || 'Gourmet item prepared with fresh ingredients.',
-        createdAt: new Date()
-      });
+        description: newProduct.description || 'Gourmet item prepared with fresh ingredients.'
+      };
+
+      if (editingProductId) {
+        // Update existing product
+        await updateDoc(doc(db, "products", editingProductId), productData);
+      } else {
+        // Add new product
+        await addDoc(collection(db, "products"), {
+          ...productData,
+          createdAt: new Date()
+        });
+      }
       
-      setIsModalOpen(false);
-      setNewProduct({ title: '', category: 'Burgers', price: '', image: '', description: '' });
+      closeModal();
     } catch (err) {
-      alert("Error adding product: " + err.message);
+      alert("Error saving product: " + err.message);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Open Modal for Editing
+  const handleEditClick = (prod) => {
+    setEditingProductId(prod.id);
+    setNewProduct({
+      title: prod.title || '',
+      category: prod.category || 'Burgers',
+      price: prod.price || '',
+      image: prod.image || '',
+      description: prod.description || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProductId(null);
+    setNewProduct({ title: '', category: 'Burgers', price: '', image: '', description: '' });
   };
 
   const handleDeleteProduct = async (id) => {
@@ -227,8 +256,8 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
               </div>
 
               <button 
-                onClick={() => setIsModalOpen(true)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-600/20 transition-all"
+                onClick={() => { setEditingProductId(null); setIsModalOpen(true); }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-600/20 transition-all cursor-pointer"
               >
                 <span>+</span> Add New Product
               </button>
@@ -253,10 +282,16 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
                       </td>
                       <td className="py-4 px-4 text-gray-400">{prod.category || 'Burgers'}</td>
                       <td className="py-4 px-4 font-bold text-orange-400">AED {parseFloat(prod.price).toFixed(2)}</td>
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-4 text-right space-x-2">
+                        <button 
+                          onClick={() => handleEditClick(prod)}
+                          className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-semibold cursor-pointer"
+                        >
+                          Edit
+                        </button>
                         <button 
                           onClick={() => handleDeleteProduct(prod.id)}
-                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-semibold"
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-semibold cursor-pointer"
                         >
                           Delete
                         </button>
@@ -308,7 +343,7 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
                         </select>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <button onClick={() => handleDeleteOrder(ord.id)} className="text-xs text-red-400 font-semibold">Delete</button>
+                        <button onClick={() => handleDeleteOrder(ord.id)} className="text-xs text-red-400 font-semibold cursor-pointer">Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -340,7 +375,7 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
               />
               <button 
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-orange-600/20"
+                className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-orange-600/20 cursor-pointer"
               >
                 Grant Access
               </button>
@@ -365,7 +400,7 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
                     <span className="font-mono text-gray-200">{adm.email}</span>
                     <button 
                       onClick={() => handleRemoveAdmin(adm.id)}
-                      className="text-xs text-red-400 hover:text-red-300 font-semibold"
+                      className="text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer"
                     >
                       Remove
                     </button>
@@ -379,17 +414,17 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
 
       </main>
 
-      {/* Add Product Modal */}
+      {/* Add / Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#141414] border border-white/10 text-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl space-y-4">
+          <div className="bg-[#141414] border border-white/10 text-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="text-xl font-bold text-white">Add New Product</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">✕</button>
+              <h3 className="text-xl font-bold text-white">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
+              <button onClick={closeModal} className="text-gray-400 hover:text-white cursor-pointer">✕</button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-4">
+            <form onSubmit={handleSaveProduct} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-gray-300 block mb-1">Product Name</label>
                 <input 
@@ -439,20 +474,31 @@ export default function AdminPanel({ onBack, initialProducts = [], primaryOwner 
                 />
               </div>
 
+              <div>
+                <label className="text-xs font-semibold text-gray-300 block mb-1">Description</label>
+                <textarea 
+                  rows="3"
+                  placeholder="Describe the item ingredients..."
+                  value={newProduct.description}
+                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                  className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 resize-none"
+                />
+              </div>
+
               <div className="flex gap-3 pt-4 border-t border-white/10">
                 <button 
                   type="button" 
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-semibold transition-all"
+                  onClick={closeModal}
+                  className="w-1/2 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-semibold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={submitting}
-                  className="w-1/2 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-orange-600/20 disabled:opacity-50"
+                  className="w-1/2 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-orange-600/20 disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting ? 'Saving...' : 'Save Product'}
+                  {submitting ? 'Saving...' : (editingProductId ? 'Update Product' : 'Save Product')}
                 </button>
               </div>
 

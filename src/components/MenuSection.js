@@ -8,7 +8,7 @@ function MenuCard({ item, onAddToCart }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleAdd = () => {
-    onAddToCart(item.id, quantity);
+    onAddToCart(item, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
@@ -46,7 +46,7 @@ function MenuCard({ item, onAddToCart }) {
             ))}
           </div>
           <span className="text-xs text-gray-400">{item.rating}</span>
-          <span className="text-xs text-gray-600">({item.reviews.toLocaleString()})</span>
+          <span className="text-xs text-gray-600">({item.reviews?.toLocaleString()})</span>
         </div>
 
         <span className="text-fire text-[11px] font-semibold uppercase tracking-widest mb-1">{item.tagline}</span>
@@ -72,7 +72,7 @@ function MenuCard({ item, onAddToCart }) {
             <button onClick={handleAdd}
               className={`relative px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
                 added
-                  ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                   : 'bg-fire hover:bg-fireLight text-white shadow-lg shadow-fire/20 hover:shadow-fire/40 hover:scale-105 active:scale-95'
               }`}>
               {added ? <><CheckIcon size={16} /> Added!</> : <><PlusIcon size={16} /> Add</>}
@@ -109,10 +109,13 @@ export default function MenuSection({ onAddToCart }) {
         </div>
 
         <div className="text-center mt-16">
-          <a href="#" className="inline-flex items-center gap-2 text-fire hover:text-fireLight transition-colors font-medium group">
-            <span>View Full Menu</span>
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="inline-flex items-center gap-2 text-fire hover:text-fireLight transition-colors font-medium group cursor-pointer"
+          >
+            <span>Back To Top</span>
             <ArrowRightIcon size={16} className="group-hover:translate-x-1 transition-transform" />
-          </a>
+          </button>
         </div>
       </div>
     </section>

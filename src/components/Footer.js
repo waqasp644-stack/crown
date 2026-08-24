@@ -12,10 +12,18 @@ export default function Footer() {
               </div>
               <span className="font-display text-xl font-bold text-white">CROWN<span className="text-fire">.</span></span>
             </div>
-            <p className="text-sm text-gray-500 font-light leading-relaxed">Premium gourmet burgers, handcrafted with passion and the finest ingredients.</p>
+            <p className="text-sm text-gray-500 font-light leading-relaxed">
+              Premium gourmet burgers, handcrafted with passion and the finest ingredients.
+            </p>
             <div className="flex items-center gap-3 mt-5">
               {['Instagram', 'Twitter', 'Facebook', 'TikTok'].map(social => (
-                <a key={social} href="#" className="w-9 h-9 rounded-lg bg-white/5 hover:bg-fire/10 border border-white/5 hover:border-fire/30 flex items-center justify-center text-gray-400 hover:text-fire text-xs transition-all">
+                <a 
+                  key={social} 
+                  href={`https://${social.toLowerCase()}.com`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/5 hover:bg-fire/10 border border-white/5 hover:border-fire/30 flex items-center justify-center text-gray-400 hover:text-fire text-xs transition-all"
+                >
                   {social[0]}
                 </a>
               ))}
@@ -32,7 +40,13 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {col.items.map(item => (
                   <li key={item}>
-                    <a href="#" className="text-sm text-gray-500 hover:text-fire transition-colors font-light">{item}</a>
+                    <button 
+                      type="button"
+                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+                      className="text-sm text-gray-500 hover:text-fire transition-colors font-light text-left"
+                    >
+                      {item}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -41,7 +55,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-600">&copy; 2025 Crown Burger. All rights reserved.</p>
+          <p className="text-xs text-gray-600">&copy; {new Date().getFullYear()} Crown Burger. All rights reserved.</p>
           <p className="text-xs text-gray-600 font-light">Crafted with 🔥 for burger lovers worldwide.</p>
         </div>
       </div>
